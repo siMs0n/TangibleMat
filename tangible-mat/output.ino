@@ -1,8 +1,8 @@
-void turnOnIotLight() {
+void toggleMusic() {
   
 }
 
-void turnOffIotLight() {
+void toggleIotLight() {
   
 }
 
