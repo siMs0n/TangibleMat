@@ -11,31 +11,36 @@ int lightstripOutputPin = 7;
 
 struct RawInput{
   boolean musicButton;
+  boolean coffeeButton;
 };
 
 struct ProcessedInput {
   boolean musicButtonPressed;
   boolean musicButtonHold;
+  boolean coffeeButtonPressed;
 };
 
 RawInput lastCycleRawInput = {
-  musicButton: false
+  musicButton: false,
+  coffeeButton: false
 };
 
 RawInput currentRawInput = {
-  musicButton: false
+  musicButton: false,
+  coffeeButton: false
 };
 
 ProcessedInput processedInput = {
   musicButtonPressed: false,
-  musicButtonHold: false
+  musicButtonHold: false,
+  coffeeButtonPressed: false
 };
 
 unsigned long musicButtonStartHold = 0;
 
 void setup() {
-  // put your setup code here, to run once:
-
+  pinMode(coffeeButtonPin, INPUT);
+  pinMode(musicButtonPin, INPUT);
 }
 
 void loop() {
@@ -44,18 +49,26 @@ void loop() {
   if(processedInput.musicButtonPressed) {
     toggleMusic();
   }
+  if(processedInput.musicButtonHold) {
+    changeVolume();
+  }
+  if(processedInput.coffeeButtonPressed) {
+    toggleCoffee();
+  }
 }
 
 void readMatInput() {
   currentRawInput = {
-    musicButton: digitalRead(musicButtonPin)
+    musicButton: digitalRead(musicButtonPin),
+    coffeeButton: digitalRead(coffeeButtonPin)
   };
 }
 
 void processMatInput() {
   processedInput = {
     musicButtonPressed: false,
-    musicButtonHold: false
+    musicButtonHold: false,
+    coffeeButtonPressed: false
   };
   
   //Music button
@@ -69,6 +82,10 @@ void processMatInput() {
   }
 
 
+  //Coffee button
+  if(lastCycleRawInput.musicButton == HIGH && currentRawInput.musicButton == LOW) {
+    processedInput.coffeeButtonPressed = true;
+  }
+
   lastCycleRawInput = currentRawInput;
 }
-
