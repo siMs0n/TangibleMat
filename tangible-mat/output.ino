@@ -24,7 +24,7 @@ void toggleIotLamp() {
   HTTPClient http;
   http.begin("https://wap.tplinkcloud.com?token=" + tpLinkToken);
   http.addHeader("Content-Type", "application/json");
-  String requestData = "{\"system\":{\"set_relay_state\":{\"state\":" + String(newLampState) + "}}}";
+  String requestData = " \"smartlife.iot.smartbulb.lightingservice\": {transition_light_state: { " + String(matState.iotLampBrightness) + ", on_off:" + String(newLampState) + "}}";
   int httpCode = http.POST("{\"method\": \"passthrough\", \"params\": {\"deviceId\": \"" + tpLinkLampDeviceId +", \"requestData\": " + requestData + "}}");
   Serial.println("Get device list post request http code: " + httpCode);
   String payload = http.getString();

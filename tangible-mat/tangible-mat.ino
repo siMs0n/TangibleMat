@@ -28,6 +28,7 @@ struct ProcessedInput {
 
 struct MatState {
   int iotLampState;
+  int iotLampBrightness;
 };
 
 RawInput lastCycleRawInput = {
@@ -50,7 +51,8 @@ ProcessedInput processedInput = {
 };
 
 MatState matState = {
-  iotLampState: 0
+  iotLampState: 0,
+  iotLampBrightness: 50
 };
 
 unsigned long musicButtonStartHold = 0;
