@@ -6,7 +6,7 @@ int irAnalogPin = A0;
 int restAreaButtonPin = 0;
 int coffeeButtonPin = 1;
 int musicButtonPin = 2;
-int lightButtonPin = 3;
+int iotLampButtonPin = 3;
 int nightLightButtonPin = 4;
 
 int nightLightOutputPin = 5;
@@ -16,28 +16,41 @@ int lightstripOutputPin = 7;
 struct RawInput{
   boolean musicButton;
   boolean coffeeButton;
+  boolean iotLampButton;
 };
 
 struct ProcessedInput {
   boolean musicButtonPressed;
   boolean musicButtonHold;
   boolean coffeeButtonPressed;
+  boolean iotLampButtonPressed;
+};
+
+struct MatState {
+  int iotLampState;
 };
 
 RawInput lastCycleRawInput = {
   musicButton: false,
-  coffeeButton: false
+  coffeeButton: false,
+  iotLampButton: false
 };
 
 RawInput currentRawInput = {
   musicButton: false,
-  coffeeButton: false
+  coffeeButton: false,
+  iotLampButton: false
 };
 
 ProcessedInput processedInput = {
   musicButtonPressed: false,
   musicButtonHold: false,
-  coffeeButtonPressed: false
+  coffeeButtonPressed: false,
+  iotLampButtonPressed: false
+};
+
+MatState matState = {
+  iotLampState: 0
 };
 
 unsigned long musicButtonStartHold = 0;
@@ -46,8 +59,9 @@ int tpNotConnected = 0;
 int tpConnecting = 1;
 int tpConnected = 2;
 int tpFailedToConnect = 3;
-int tpLinkCloudConnection = notConnected;
+int tpLinkCloudConnection = tpNotConnected;
 String tpLinkToken = "";
+String tpLinkLampDeviceId = "";
 
 void setup() {
   pinMode(coffeeButtonPin, INPUT);
@@ -72,12 +86,17 @@ void loop() {
   if(processedInput.coffeeButtonPressed) {
     toggleCoffee();
   }
+
+  if(processedInput.iotLampButtonPressed) {
+    toggleIotLamp();
+  }
 }
 
 void readMatInput() {
   currentRawInput = {
     musicButton: digitalRead(musicButtonPin),
-    coffeeButton: digitalRead(coffeeButtonPin)
+    coffeeButton: digitalRead(coffeeButtonPin),
+    iotLampButton: digitalRead(iotLampButtonPin)
   };
 }
 
@@ -85,7 +104,8 @@ void processMatInput() {
   processedInput = {
     musicButtonPressed: false,
     musicButtonHold: false,
-    coffeeButtonPressed: false
+    coffeeButtonPressed: false,
+    iotLampButtonPressed: false
   };
   
   //Music button
@@ -102,6 +122,11 @@ void processMatInput() {
   //Coffee button
   if(lastCycleRawInput.musicButton == HIGH && currentRawInput.musicButton == LOW) {
     processedInput.coffeeButtonPressed = true;
+  }
+
+  //Iot lamp button
+  if(lastCycleRawInput.iotLampButton == HIGH && currentRawInput.iotLampButton == LOW) {
+    processedInput.iotLampButtonPressed = true;
   }
 
   lastCycleRawInput = currentRawInput;
@@ -129,8 +154,33 @@ void loginToIotLampCloud() {
     tpLinkCloudConnection = tpFailedToConnect;
     return;
   } else {
-    tpLinkToken = root["token"];
+    const char* charToken = root["token"];
+    tpLinkToken = String(charToken);
+    fetchTpLinkDeviceId();
+    Serial.println("Got tp link token");
+  }
+}
+
+void fetchTpLinkDeviceId() {
+  Serial.println("Getting the device id from the tp link cloud");
+  StaticJsonBuffer<200> jsonBuffer;
+  
+  HTTPClient http;
+  http.begin("https://wap.tplinkcloud.com?token=" + tpLinkToken);
+  http.addHeader("Content-Type", "application/json");
+  int httpCode = http.POST("{\"method\": \"getDeviceList\"}");
+  Serial.println("Get device list post request http code: " + httpCode);
+  String payload = http.getString();
+  http.end();
+  JsonObject& root = jsonBuffer.parseObject(payload);
+  if (!root.success()) {
+    Serial.println("parseObject() failed");
+    tpLinkCloudConnection = tpFailedToConnect;
+    return;
+  } else {
+    const char* charToken = root["deviceId"];
+    tpLinkLampDeviceId = String(charToken);
     tpLinkCloudConnection = tpConnected;
-    Serial.println("Got token and connected to the tp link cloud");
+    Serial.println("Got tp link device id and connected to the tp link cloud");
   }
 }
