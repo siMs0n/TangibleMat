@@ -3,17 +3,17 @@
 // fastled led strip controls go here
 // 1 channel for everything
 
-#define NUM_LEDS 32
-#define LED_STRIP_PIN 3 // better use a PWM enabled pin
+#define NUM_LEDS 7
+#define LED_STRIP_PIN D3 // better use a PWM enabled pin
 //note for the D1 mini: "All of the IO pins have interrupt/pwm/I2C/one-wire support except D0."
 //#define LED_STRIP_CLOCK_PIN 8 // clock pin for SPI based chipsets
 
 #define LED_BASE_HUE CRGB::Gold //base colour being used
-#define LED_BRIGHTNESS 16 // goes up to 256 i think?
+#define LED_BRIGHTNESS 64 // goes up to 256 i think?
 // note that neopixels can get pretty bright, and high brightness
 // takes more power. or do we want this to be a var instead?
 
-// define indices here maybe? for buttons etc. or in main file
+// define indices like this, then plug into functions. actually we need to declare in main file
 // for meter, define first index and length (no of pixels)
 // (meters assumed to be something that "fills up" from bottom)
 #define LED_BUTTON_1 0
@@ -21,8 +21,8 @@
 #define LED_BUTTON_3 2
 #define LED_BUTTON_4 3
 #define LED_BUTTON_5 4
-#define LED_METER_1 5
-#define LED_METER_1_LEN 10
+#define LED_METER_1 0
+#define LED_METER_1_LEN 7
 
 
 // THIS IS THE ARRAY WHERE THE LEDS GO
@@ -30,10 +30,11 @@ CRGB leds[NUM_LEDS];
 
 void initLedStrips() {
     // sanity check delay - allows reprogramming if accidently blowing power w/leds
-    // delay(2000);
+    delay(500);
 
     FastLED.addLeds<NEOPIXEL, LED_STRIP_PIN>(leds, NUM_LEDS);
     FastLED.setBrightness(LED_BRIGHTNESS);
+    FastLED.clear(); //sanity check clear
     
 }
 
@@ -65,4 +66,9 @@ void ledSetMeter(int first_index, int meter_len, float value) {
     }
   }
   FastLED.show();
+}
+
+// wrapper for clearing all leds back to black
+void ledClear() {
+  FastLED.clear();
 }
