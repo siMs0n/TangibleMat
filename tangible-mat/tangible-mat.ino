@@ -3,10 +3,10 @@
 #include <ArduinoJson.h>
 
 int irAnalogPin = A0;
-int restAreaButtonPin = 0;
+int restAreaButtonPin = 3;
 int coffeeButtonPin = 1;
 int musicButtonPin = 2;
-int iotLampButtonPin = 3;
+int iotLampButtonPin = D0;
 int nightLightButtonPin = 4;
 
 int nightLightOutputPin = 5;
@@ -62,8 +62,9 @@ int tpConnecting = 1;
 int tpConnected = 2;
 int tpFailedToConnect = 3;
 int tpLinkCloudConnection = tpNotConnected;
-String tpLinkToken = "";
-String tpLinkLampDeviceId = "";
+String tpLinkToken = "b5cf28b6-B7FOFHT0qcRgE1sGneBneWD";
+String tpLinkLampDeviceId = "801228A381E22A6B1D817D2EAF09CFCA18CAC9E6";
+String tpLinkFingerPrint = "39:E1:F0:E9:5E:41:3D:97:F7:BF:81:82:0C:F8:ED:41:E0:96:AF:DA";
 
 void setup() {
   pinMode(coffeeButtonPin, INPUT);
@@ -75,7 +76,11 @@ void setup() {
 
 void loop() {
   if(WiFi.status() == WL_CONNECTED && tpLinkCloudConnection == tpNotConnected){
-    loginToIotLampCloud();
+    Serial.println("Connected to wifi");
+    //loginToIotLampCloud();
+    //toggleIotLamp();
+    dimIotLamp(30);
+    tpLinkCloudConnection = tpConnected;
   }
   readMatInput();
   processMatInput();
@@ -90,7 +95,8 @@ void loop() {
   }
 
   if(processedInput.iotLampButtonPressed) {
-    toggleIotLamp();
+    //toggleIotLamp();
+    dimIotLamp(80);
   }
 }
 
@@ -144,16 +150,23 @@ void loginToIotLampCloud() {
   StaticJsonBuffer<200> jsonBuffer;
   
   HTTPClient http;
-  http.begin("https://wap.tplinkcloud.com");
+  http.begin("https://wap.tplinkcloud.com", tpLinkFingerPrint);
   http.addHeader("Content-Type", "application/json");
-  int httpCode = http.POST("{\"method\": \"login\",\"params\": {\"appType\": \"Kasa_Android\",\"cloudUserName\": \"stina.vk@gmail.com\",\"cloudPassword\": \"Tangible\",\"terminalUUID\": \"015ea6b4-26f4-4d50-af6f-d543024f57b8\"}}");
-  Serial.println("Login post request http code: " + httpCode);
+  String loginRequest = "{\"method\": \"login\",\"params\": {\"appType\": \"Kasa_Android\",\"cloudUserName\": \"stina.vk@gmail.com\",\"cloudPassword\": \"Tangible\",\"terminalUUID\": \"015ea6b4-26f4-4d50-af6f-d543024f57b8\"}}";
+  Serial.println("Login request:");
+  Serial.println(loginRequest);
+  int httpCode = http.POST(loginRequest);
+  Serial.println("Login post request http code: " + String(httpCode));
   String payload = http.getString();
+  Serial.println(payload);
   http.end();
+  //char json[1000]; 
+  //payload.toCharArray(json, 1000);
   JsonObject& root = jsonBuffer.parseObject(payload);
   if (!root.success()) {
-    Serial.println("parseObject() failed");
+    Serial.println("parseObject() failed at login");
     tpLinkCloudConnection = tpFailedToConnect;
+    fetchTpLinkDeviceId();
     return;
   } else {
     const char* charToken = root["token"];
@@ -168,15 +181,16 @@ void fetchTpLinkDeviceId() {
   StaticJsonBuffer<200> jsonBuffer;
   
   HTTPClient http;
-  http.begin("https://wap.tplinkcloud.com?token=" + tpLinkToken);
+  http.begin("https://wap.tplinkcloud.com?token=" + tpLinkToken, tpLinkFingerPrint);
   http.addHeader("Content-Type", "application/json");
-  int httpCode = http.POST("{\"method\": \"getDeviceList\"}");
-  Serial.println("Get device list post request http code: " + httpCode);
+  String deviceListRequest = "{\"method\": \"getDeviceList\"}";
+  int httpCode = http.POST(deviceListRequest);
+  Serial.println("Get device list post request http code: " + String(httpCode));
   String payload = http.getString();
   http.end();
   JsonObject& root = jsonBuffer.parseObject(payload);
   if (!root.success()) {
-    Serial.println("parseObject() failed");
+    Serial.println("parseObject() failed at get device id");
     tpLinkCloudConnection = tpFailedToConnect;
     return;
   } else {
