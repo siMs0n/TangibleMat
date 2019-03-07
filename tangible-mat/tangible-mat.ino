@@ -78,8 +78,6 @@ void loop() {
   if(WiFi.status() == WL_CONNECTED && tpLinkCloudConnection == tpNotConnected){
     Serial.println("Connected to wifi");
     //loginToIotLampCloud();
-    //toggleIotLamp();
-    dimIotLamp(30);
     tpLinkCloudConnection = tpConnected;
   }
   readMatInput();
@@ -95,8 +93,7 @@ void loop() {
   }
 
   if(processedInput.iotLampButtonPressed) {
-    //toggleIotLamp();
-    dimIotLamp(80);
+    toggleIotLamp();
   }
 }
 
