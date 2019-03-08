@@ -4,6 +4,8 @@ void toggleMusic() {
 
 void changeVolume() {
   //Remember to add debounce for volume (don't change it many times per second)
+  matState.volume = processedInput.sliderValue;
+  //Send volume change
 }
 
 void toggleCoffee() {

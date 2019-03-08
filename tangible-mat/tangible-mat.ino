@@ -17,6 +17,7 @@ struct RawInput{
   boolean musicButton;
   boolean coffeeButton;
   boolean iotLampButton;
+  int sliderValue;
 };
 
 struct ProcessedInput {
@@ -24,35 +25,43 @@ struct ProcessedInput {
   boolean musicButtonHold;
   boolean coffeeButtonPressed;
   boolean iotLampButtonPressed;
+  int sliderValue;
 };
 
 struct MatState {
   int iotLampState;
   int iotLampBrightness;
+  int volume;
+  int dimValue;
 };
 
 RawInput lastCycleRawInput = {
   musicButton: false,
   coffeeButton: false,
-  iotLampButton: false
+  iotLampButton: false,
+  sliderValue: 0
 };
 
 RawInput currentRawInput = {
   musicButton: false,
   coffeeButton: false,
-  iotLampButton: false
+  iotLampButton: false,
+  sliderValue: 0
 };
 
 ProcessedInput processedInput = {
   musicButtonPressed: false,
   musicButtonHold: false,
   coffeeButtonPressed: false,
-  iotLampButtonPressed: false
+  iotLampButtonPressed: false,
+  sliderValue: 0
 };
 
 MatState matState = {
   iotLampState: 0,
-  iotLampBrightness: 50
+  iotLampBrightness: 50,
+  volume: 20,
+  dimValue: 20
 };
 
 unsigned long musicButtonStartHold = 0;
@@ -101,7 +110,8 @@ void readMatInput() {
   currentRawInput = {
     musicButton: digitalRead(musicButtonPin),
     coffeeButton: digitalRead(coffeeButtonPin),
-    iotLampButton: digitalRead(iotLampButtonPin)
+    iotLampButton: digitalRead(iotLampButtonPin),
+    sliderValue: analogRead(irAnalogPin)
   };
 }
 
@@ -110,7 +120,8 @@ void processMatInput() {
     musicButtonPressed: false,
     musicButtonHold: false,
     coffeeButtonPressed: false,
-    iotLampButtonPressed: false
+    iotLampButtonPressed: false,
+    sliderValue: 0
   };
   
   //Music button
@@ -132,6 +143,18 @@ void processMatInput() {
   //Iot lamp button
   if(lastCycleRawInput.iotLampButton == HIGH && currentRawInput.iotLampButton == LOW) {
     processedInput.iotLampButtonPressed = true;
+  }
+
+  //Slider
+  int outputValue = map(currentRawInput.sliderValue, 0, 1023, 255, 0);
+  
+  outputValue = outputValue - 15;
+  if( outputValue < 0 ) {
+    processedInput.sliderValue = 0;
+  } else if(outputValue > 160) {
+    processedInput.sliderValue = 100;
+  } else {
+    processedInput.sliderValue = outputValue * (100/160);
   }
 
   lastCycleRawInput = currentRawInput;
