@@ -4,7 +4,7 @@
 // 1 channel for everything
 
 #define NUM_LEDS 28 // 0 to 27
-#define LED_STRIP_PIN D3 // better use a PWM enabled pin
+#define LED_STRIP_PIN D8 // better use a PWM enabled pin
 //note for the D1 mini: "All of the IO pins have interrupt/pwm/I2C/one-wire support except D0."
 //#define LED_STRIP_CLOCK_PIN 8 // clock pin for SPI based chipsets
 

@@ -109,9 +109,12 @@ String tpLinkFingerPrint = "39:E1:F0:E9:5E:41:3D:97:F7:BF:81:82:0C:F8:ED:41:E0:9
 void setup() {
   pinMode(coffeeButtonPin, INPUT);
   pinMode(musicButtonPin, INPUT);
+  pinMode(iotLampButtonPin, INPUT);
   pinMode(nightLightButtonPin, INPUT);
   pinMode(activationAreaLeftButtonPin, INPUT);
   pinMode(activationAreaRightButtonPin, INPUT);
+
+  pinMode(irAnalogPin, INPUT);
 
   pinMode(nightLightOutputPin, OUTPUT);
 
