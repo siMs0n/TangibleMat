@@ -3,10 +3,17 @@ void toggleMusic() {
 }
 
 void changeVolume() {
-  //Remember to add debounce for volume (don't change it many times per second)
-  matState.volume = processedInput.sliderValue;
-  Serial.println("Change volume");
-  //Send volume change
+   if ((millis() - lastDebounceTimeSlider) > debounceDelaySlider) {
+    // whatever the reading is at, it's been there for longer than the debounce
+    // delay, so take it as the actual current state:
+
+    matState.volume = processedInput.sliderValue;
+    Serial.println("Change volume");
+     //Send volume change
+
+     
+    lastDebounceTimeSlider = millis();
+   }
 }
 
 void toggleCoffee() {
@@ -14,7 +21,7 @@ void toggleCoffee() {
 }
 
 void toggleNightLight() {
-  
+  Serial.println("Toggle night light");
   if(matState.nightLightState == 1) {
     digitalWrite(nightLightOutputPin, LOW);
     matState.nightLightState = 0;
@@ -25,6 +32,7 @@ void toggleNightLight() {
 }
 
 void activateMat(){
+  Serial.println("Activating mat");
   ledCoolAnimate();
   matState.matState = 1; 
 }
@@ -91,18 +99,28 @@ void toggleIotLamp() {
   }*/
 }
 
-void dimIotLamp(int brightness) {
-  HTTPClient http;
-  String laptopIp = "192.168.1.101";
-  http.begin("http://" + laptopIp + ":3000/set-state");
-  http.addHeader("Content-Type", "application/json");
-  Serial.println("Dim request:");
-  String request = "{\"state\": 1, \"brightness\": " + String(brightness) + "}";
-  Serial.println(request);
-  int httpCode = http.POST(request);
-  //int httpCode = http.POST("{state: 1, brightness: 20}");
-  Serial.println("Toggle http code: " + String(httpCode));
-  String payload = http.getString();
-  Serial.println("Response: " + payload);
-  http.end();
+void dimIotLamp() {
+  if ((millis() - lastDebounceTimeSlider) > debounceDelaySlider) {
+    // whatever the reading is at, it's been there for longer than the debounce
+    // delay, so take it as the actual current state:
+
+    Serial.println("Dim light");
+
+    HTTPClient http;
+    String laptopIp = "192.168.1.101";
+    http.begin("http://" + laptopIp + ":3000/set-state");
+    http.addHeader("Content-Type", "application/json");
+    Serial.println("Dim request:");
+    String request = "{\"state\": 1, \"brightness\": " + String(processedInput.sliderValue) + "}";
+    Serial.println(request);
+    int httpCode = http.POST(request);
+    //int httpCode = http.POST("{state: 1, brightness: 20}");
+    Serial.println("Toggle http code: " + String(httpCode));
+    String payload = http.getString();
+    Serial.println("Response: " + payload);
+    http.end();
+
+    matState.volume = processedInput.sliderValue;
+    lastDebounceTimeSlider = millis();
+   }
 }

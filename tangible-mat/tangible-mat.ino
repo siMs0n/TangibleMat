@@ -3,16 +3,16 @@
 #include <ArduinoJson.h>
 
 int irAnalogPin = A0;
-int activationAreaLeftButtonPin = 3;
-int activationAreaRightButtonPin = 8;
-int coffeeButtonPin = 1;
-int musicButtonPin = D2;
-int iotLampButtonPin = 2;
-int nightLightButtonPin = D0;
+int activationAreaLeftButtonPin = D3;
+int activationAreaRightButtonPin = D8;
+int coffeeButtonPin = D1;
+int musicButtonPin = D0;
+int iotLampButtonPin = D2;
+int nightLightButtonPin = D5;
 
 int nightLightOutputPin = D6;
-int lightstripClockPin = 6;
-int lightstripOutputPin = 7;
+//int lightstripClockPin = D5;
+int lightstripOutputPin = D7;
 
 struct RawInput{ //Raw input, for example if buttons are HIGH or LOW
   boolean musicButton;
@@ -91,6 +91,9 @@ MatState matState = {
 unsigned long musicButtonStartHold = 0; //Timestamp for when music button hold was started
 unsigned long activationAreaButtonStartHold = 0;
 
+unsigned long lastDebounceTimeSlider = 0;  // the last time the output pin was toggled
+unsigned long debounceDelaySlider = 250;    // the debounce time; increase if the output flickers
+
 int tpNotConnected = 0;
 int tpConnecting = 1;
 int tpConnected = 2;
@@ -106,6 +109,8 @@ void setup() {
   pinMode(nightLightButtonPin, INPUT);
   pinMode(activationAreaLeftButtonPin, INPUT);
   pinMode(activationAreaRightButtonPin, INPUT);
+
+  pinMode(nightLightOutputPin, OUTPUT);
 
   Serial.begin(9600);
   Serial.println("Setting up mat");
@@ -144,10 +149,10 @@ void loop() {
 
   if(processedInput.activationAreaLeftButtonHold || processedInput.activationAreaRightButtonHold) {
     if(matState.matState == 0){
-    activateMat();
+      activateMat();
     }
     if(matState.alarmState == 1){
-    turnOffAlarm();
+      turnOffAlarm();
     }
   }
    
@@ -214,16 +219,17 @@ void processMatInput() {
   lastCycleRawInput.activationAreaRightButton == HIGH;
   boolean currentCycleHigh = currentRawInput.activationAreaLeftButton == HIGH ||
   currentRawInput.activationAreaRightButton == HIGH;
-  boolean lastCycleLow = lastCycleRawInput.activationAreaLeftButton == LOW || 
+  boolean lastCycleLow = lastCycleRawInput.activationAreaLeftButton == LOW && 
   lastCycleRawInput.activationAreaRightButton == LOW;
-  
    
  //activtionArea
   if(lastCycleLow && currentCycleHigh) {
-      activationAreaButtonStartHold = millis();
+    //Serial.println("Start hold");
+    activationAreaButtonStartHold = millis();
   } else if(lastCycleHigh && currentCycleHigh && millis() - activationAreaButtonStartHold > 1000 ){
-      processedInput.activationAreaLeftButtonHold = true;
-      processedInput.activationAreaRightButtonHold = true; 
+    //Serial.println("HOLD");
+    processedInput.activationAreaLeftButtonHold = true;
+    processedInput.activationAreaRightButtonHold = true; 
   }
   
  
