@@ -1,15 +1,37 @@
 void toggleMusic() {
-  
+  Serial.println("Toggle music");
 }
 
 void changeVolume() {
   //Remember to add debounce for volume (don't change it many times per second)
   matState.volume = processedInput.sliderValue;
+  Serial.println("Change volume");
   //Send volume change
 }
 
 void toggleCoffee() {
   
+}
+
+void toggleNightLight() {
+  
+  if(matState.nightLightState == 1) {
+    digitalWrite(nightLightOutputPin, LOW);
+    matState.nightLightState = 0;
+  } else {
+    digitalWrite(nightLightOutputPin, HIGH);
+    matState.nightLightState = 1;
+  }
+}
+
+void activateMat(){
+  ledCoolAnimate();
+  matState.matState = 1; 
+}
+
+void turnOffAlarm(){
+  matState.alarmState = 0;
+  //Send to alarm to turn off
 }
 
 void toggleIotLamp() {
@@ -19,6 +41,8 @@ void toggleIotLamp() {
   } else {
     newLampState = 0;
   }
+
+  
 
   Serial.println("Toggle tp link lamp via wifi");
   HTTPClient http;
