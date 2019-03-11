@@ -1,5 +1,25 @@
 void toggleMusic() {
+  int newMusicState;
+  if(matState.musicState == 0) {
+    newMusicState = 1;
+  } else {
+    newMusicState = 0;
+  }
+  
   Serial.println("Toggle music");
+  HTTPClient http;
+  String laptopIp = "192.168.1.101";
+  http.begin("http://" + laptopIp + ":3000/music");
+  http.addHeader("Content-Type", "application/json");
+  Serial.println("Music request:");
+  String request = "{\"state\": " + String(newMusicState) + ", \"volume\": 50}";
+  Serial.println(request);
+  int httpCode = http.POST(request);
+  Serial.println("Toggle http code: " + String(httpCode));
+  String payload = http.getString();
+  Serial.println("Response: " + payload);
+  matState.musicState = newMusicState;
+  http.end();
 }
 
 void changeVolume() {
@@ -9,15 +29,47 @@ void changeVolume() {
 
     matState.volume = processedInput.sliderValue;
     Serial.println("Change volume");
-     //Send volume change
-
+    
+    HTTPClient http;
+    String laptopIp = "192.168.1.101";
+    http.begin("http://" + laptopIp + ":3000/music");
+    http.addHeader("Content-Type", "application/json");
+    Serial.println("Volume request:");
+    String request = "{\"state\": 1, \"volume\": " + String(processedInput.sliderValue) + "}";
+    Serial.println(request);
+    int httpCode = http.POST(request);
+    Serial.println("Toggle http code: " + String(httpCode));
+    String payload = http.getString();
+    Serial.println("Response: " + payload);
+    http.end();
      
     lastDebounceTimeSlider = millis();
    }
 }
 
 void toggleCoffee() {
+  int newCoffeeState;
+  if(matState.coffeeState == 0) {
+    newCoffeeState = 1;
+  } else {
+    newCoffeeState = 0;
+  }
   
+  Serial.println("Toggle coffee");
+  HTTPClient http;
+  String laptopIp = "192.168.1.101";
+  http.begin("http://" + laptopIp + ":3000/coffee");
+  http.addHeader("Content-Type", "application/json");
+  Serial.println("Coffe request:");
+  String request = "{\"state\": " + String(newCoffeeState) + "}";
+  Serial.println(request);
+  int httpCode = http.POST(request);
+  Serial.println("Toggle http code: " + String(httpCode));
+  String payload = http.getString();
+  Serial.println("Response: " + payload);
+  matState.coffeeState = newCoffeeState;
+  Serial.println("Toggled iot lamp state");
+  http.end();
 }
 
 void toggleNightLight() {
@@ -49,15 +101,13 @@ void toggleIotLamp() {
   } else {
     newLampState = 0;
   }
-
   
-
   Serial.println("Toggle tp link lamp via wifi");
   HTTPClient http;
   String laptopIp = "192.168.1.101";
-  http.begin("http://" + laptopIp + ":3000/set-state");
+  http.begin("http://" + laptopIp + ":3000/lamp");
   http.addHeader("Content-Type", "application/json");
-  Serial.println("Dim request:");
+  Serial.println("Toggle lamp request:");
   String request = "{\"state\": " + String(newLampState) + ", \"brightness\": 50}";
   Serial.println(request);
   int httpCode = http.POST(request);
@@ -108,7 +158,7 @@ void dimIotLamp() {
 
     HTTPClient http;
     String laptopIp = "192.168.1.101";
-    http.begin("http://" + laptopIp + ":3000/set-state");
+    http.begin("http://" + laptopIp + ":3000//lamp");
     http.addHeader("Content-Type", "application/json");
     Serial.println("Dim request:");
     String request = "{\"state\": 1, \"brightness\": " + String(processedInput.sliderValue) + "}";

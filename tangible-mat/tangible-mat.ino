@@ -4,15 +4,14 @@
 
 int irAnalogPin = A0;
 int activationAreaLeftButtonPin = D3;
-int activationAreaRightButtonPin = D8;
-int coffeeButtonPin = D1;
-int musicButtonPin = D0;
-int iotLampButtonPin = D2;
-int nightLightButtonPin = D5;
+int activationAreaRightButtonPin = D2;
+int coffeeButtonPin = D6;
+int musicButtonPin = D5;
+int iotLampButtonPin = D4;
+int nightLightButtonPin = D3;
 
-int nightLightOutputPin = D6;
-//int lightstripClockPin = D5;
-int lightstripOutputPin = D7;
+int nightLightOutputPin = D7;
+int lightstripOutputPin = D8;
 
 struct RawInput{ //Raw input, for example if buttons are HIGH or LOW
   boolean musicButton;
@@ -40,10 +39,12 @@ struct ProcessedInput { //Processed input with logic. For example true/false if 
 struct MatState { //For example is the lamp on, what volume, progress of coffee
   int iotLampState; // on/off 0/1
   int iotLampBrightness; //0-100
+  int musicState;
   int volume;
   int nightLightState; // On/off 0/1
   int matState;
   int alarmState;
+  int coffeeState;
 };
 
 RawInput lastCycleRawInput = {
@@ -82,10 +83,12 @@ ProcessedInput processedInput = { //Processed input with logic. For example true
 MatState matState = {
   iotLampState: 0,
   iotLampBrightness: 50,
+  musicState: 0,
   volume: 20,
   nightLightState:0,
   matState:0,
-  alarmState:0
+  alarmState:0,
+  coffeeState: 0
 };
 
 unsigned long musicButtonStartHold = 0; //Timestamp for when music button hold was started
