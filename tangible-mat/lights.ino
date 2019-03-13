@@ -33,18 +33,19 @@
 CRGB leds[NUM_LEDS];
 
 void initLedStrips() {
-    // sanity check delay - allows reprogramming if accidently blowing power w/leds
-    delay(500);
+  // sanity check delay - allows reprogramming if accidently blowing power w/leds
+  delay(500);
 
-    FastLED.addLeds<NEOPIXEL, LED_STRIP_PIN>(leds, NUM_LEDS);
-    FastLED.setBrightness(LED_BRIGHTNESS);
-    FastLED.clear(); //sanity check clear
-    
+  FastLED.addLeds<NEOPIXEL, LED_STRIP_PIN>(leds, NUM_LEDS);
+  FastLED.setBrightness(LED_BRIGHTNESS);
+  FastLED.clear(); //sanity check clear
+
 }
 
 //animates the led in a cool way, maybe for turning on or something
 void ledCoolAnimate() {
   // FastLED's built-in rainbow generator
+  Serial.println("Animate leds");
   fill_rainbow( leds, NUM_LEDS, LED_BASE_HUE, 7);
 }
 
@@ -54,13 +55,18 @@ void ledSwitchButton(int index, bool turning_on) {
   FastLED.show();
 }
 
+void setledMeters(int value) {
+  ledSetMeter(25, -12, value / 100);
+  ledSetMeter(2, 12, value / 100);
+}
+
 //set the meter turned on length as specified
 // it takes a float range from 0 to 1 (0.5 is 50%)
 void ledSetMeter(int first_index, int meter_len, float value) {
   // do float arithmetics, but cast to int so it's floored
   // should be fine even for negative values right???
   int max_index = first_index + (int)(value * (float) meter_len);
-  
+
   // set the leds
   if (meter_len < 0) { //negative length = backwards
     for (int i = first_index; i < (first_index + meter_len); i--) {

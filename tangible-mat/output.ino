@@ -2,13 +2,14 @@ void toggleMusic() {
   int newMusicState;
   if(matState.musicState == 0) {
     newMusicState = 1;
+    ledSwitchButton(musicLed, true);
   } else {
     newMusicState = 0;
+    ledSwitchButton(musicLed, false);
   }
   
   Serial.println("Toggle music");
   HTTPClient http;
-  String laptopIp = "192.168.1.101";
   http.begin("http://" + laptopIp + ":3000/music");
   http.addHeader("Content-Type", "application/json");
   Serial.println("Music request:");
@@ -23,15 +24,15 @@ void toggleMusic() {
 }
 
 void changeVolume() {
-   if ((millis() - lastDebounceTimeSlider) > debounceDelaySlider) {
+   //if ((millis() - lastDebounceTimeSlider) > debounceDelaySlider) {
     // whatever the reading is at, it's been there for longer than the debounce
     // delay, so take it as the actual current state:
 
     matState.volume = processedInput.sliderValue;
+    setledMeters(matState.volume);
     Serial.println("Change volume");
     
     HTTPClient http;
-    String laptopIp = "192.168.1.101";
     http.begin("http://" + laptopIp + ":3000/music");
     http.addHeader("Content-Type", "application/json");
     Serial.println("Volume request:");
@@ -43,21 +44,22 @@ void changeVolume() {
     Serial.println("Response: " + payload);
     http.end();
      
-    lastDebounceTimeSlider = millis();
-   }
+    //lastDebounceTimeSlider = millis();
+   //}
 }
 
 void toggleCoffee() {
   int newCoffeeState;
   if(matState.coffeeState == 0) {
     newCoffeeState = 1;
+    ledSwitchButton(coffeeLed, true);
   } else {
     newCoffeeState = 0;
+    ledSwitchButton(coffeeLed, false);
   }
   
   Serial.println("Toggle coffee");
   HTTPClient http;
-  String laptopIp = "192.168.1.101";
   http.begin("http://" + laptopIp + ":3000/coffee");
   http.addHeader("Content-Type", "application/json");
   Serial.println("Coffe request:");
@@ -77,16 +79,18 @@ void toggleNightLight() {
   if(matState.nightLightState == 1) {
     digitalWrite(nightLightOutputPin, LOW);
     matState.nightLightState = 0;
+    ledSwitchButton(nightLightLed, false);
   } else {
     digitalWrite(nightLightOutputPin, HIGH);
     matState.nightLightState = 1;
+    ledSwitchButton(nightLightLed, true);
   }
 }
 
 void activateMat(){
   Serial.println("Activating mat");
   ledCoolAnimate();
-  matState.matState = 1; 
+  matState.matState = 1;
 }
 
 void turnOffAlarm(){
@@ -98,17 +102,18 @@ void toggleIotLamp() {
   int newLampState;
   if(matState.iotLampState == 0) {
     newLampState = 1;
+    ledSwitchButton(iotLampLed, true);
   } else {
     newLampState = 0;
+    ledSwitchButton(iotLampLed, false);
   }
   
   Serial.println("Toggle tp link lamp via wifi");
   HTTPClient http;
-  String laptopIp = "192.168.1.101";
   http.begin("http://" + laptopIp + ":3000/lamp");
   http.addHeader("Content-Type", "application/json");
   Serial.println("Toggle lamp request:");
-  String request = "{\"state\": " + String(newLampState) + ", \"brightness\": 50}";
+  String request = "{\"state\": " + String(newLampState) + ", \"brightness\": " + String(matState.iotLampBrightness) + "}";
   Serial.println(request);
   int httpCode = http.POST(request);
   //int httpCode = http.POST("{state: 1, brightness: 20}");
@@ -118,6 +123,8 @@ void toggleIotLamp() {
   matState.iotLampState = newLampState;
   Serial.println("Toggled iot lamp state");
   http.end();
+
+  setledMeters(matState.iotLampState);
   /*StaticJsonBuffer<200> jsonBuffer;
   
   HTTPClient http;
@@ -150,15 +157,14 @@ void toggleIotLamp() {
 }
 
 void dimIotLamp() {
-  if ((millis() - lastDebounceTimeSlider) > debounceDelaySlider) {
+  //if ((millis() - lastDebounceTimeSlider) > debounceDelaySlider) {
     // whatever the reading is at, it's been there for longer than the debounce
     // delay, so take it as the actual current state:
 
     Serial.println("Dim light");
 
     HTTPClient http;
-    String laptopIp = "192.168.1.101";
-    http.begin("http://" + laptopIp + ":3000//lamp");
+    http.begin("http://" + laptopIp + ":3000/lamp");
     http.addHeader("Content-Type", "application/json");
     Serial.println("Dim request:");
     String request = "{\"state\": 1, \"brightness\": " + String(processedInput.sliderValue) + "}";
@@ -170,7 +176,7 @@ void dimIotLamp() {
     Serial.println("Response: " + payload);
     http.end();
 
-    matState.volume = processedInput.sliderValue;
-    lastDebounceTimeSlider = millis();
-   }
+    matState.iotLampBrightness = processedInput.sliderValue;
+    //lastDebounceTimeSlider = millis();
+   //}
 }
