@@ -5,7 +5,7 @@
 int irAnalogPin = A0;
 int activationAreaLeftButtonPin = D1;
 int activationAreaRightButtonPin = D2;
-int coffeeButtonPin = D3;
+int coffeeButtonPin = D0;
 int musicButtonPin = D4;
 int iotLampButtonPin = D5;
 int nightLightButtonPin = D6;
@@ -15,8 +15,8 @@ int lightstripOutputPin = D8;
 
 int nightLightLed = 0;
 int iotLampLed = 1;
-int musicLed = 25;
-int coffeeLed = 26;
+int musicLed = 26;
+int coffeeLed = 27;
 
 struct RawInput{ //Raw input, for example if buttons are HIGH or LOW
   boolean musicButton;
@@ -101,6 +101,8 @@ MatState matState = {
 unsigned long musicButtonStartHold = 0; //Timestamp for when music button hold was started
 unsigned long iotLampButtonStartHold = 0;
 unsigned long activationAreaButtonStartHold = 0;
+boolean iotLampButtonHoldLastCycle = false;
+boolean musicButtonHoldLastCycle = false;
 
 unsigned long lastDebounceTimeSlider = 0;  // the last time the output pin was toggled
 unsigned long debounceDelaySlider = 100;    // the debounce time; increase if the output flickers
@@ -130,7 +132,7 @@ void setup() {
   Serial.begin(9600);
   Serial.println("Setting up mat");
   initLedStrips();
-  ledCoolAnimate(); //Remove later
+  //ledCoolAnimate(); //Remove later
   connectToWifi();
 }
 
@@ -140,12 +142,17 @@ void loop() {
     //loginToIotLampCloud();
     tpLinkCloudConnection = tpConnected;
   }
+  /*if(digitalRead(musicButtonPin) == HIGH){
+    Serial.println("music pressed");
+  }*/
   //readMatInput();
   //processMatInput();
+  //Serial.println(String(digitalRead(coffeeButtonPin)));
   if ((millis() - lastDebounceTimeSlider) > debounceDelaySlider) {
     readMatInput();
     processMatInput();
     if(processedInput.musicButtonPressed) {
+      //Serial.println("I think music is pressed");
       toggleMusic();
     }
     if(processedInput.musicButtonHold) {
@@ -173,6 +180,7 @@ void loop() {
   
     if(processedInput.activationAreaLeftButtonHold || processedInput.activationAreaRightButtonHold) {
       if(matState.matState == 0){
+        turnOffAlarm();
         activateMat();
       }
       if(matState.alarmState == 1){
@@ -213,18 +221,20 @@ void processMatInput() {
     activationAreaRightButtonHold: false,
     sliderValue: 0    
   };
-  //Serial.println("Raw input: " + currentRawInput.sliderValue);
+  //Serial.println("Raw input: " + String(currentRawInput.coffeeButton));
   
   //Music button
   if(lastCycleRawInput.musicButton == HIGH && currentRawInput.musicButton == LOW) {
-    processedInput.musicButtonPressed = true;
+    if(!musicButtonHoldLastCycle) {
+      processedInput.musicButtonPressed = true;
+    }
   } else if(lastCycleRawInput.musicButton == LOW && currentRawInput.musicButton == HIGH) {
     musicButtonStartHold = millis();
   } else if(lastCycleRawInput.musicButton == HIGH && currentRawInput.musicButton == HIGH &&
         millis() - musicButtonStartHold > 1000) {
     processedInput.musicButtonHold = true;
   }
-
+  musicButtonHoldLastCycle = processedInput.musicButtonHold; 
 
   //Coffee button
   if(lastCycleRawInput.coffeeButton == HIGH && currentRawInput.coffeeButton == LOW) {
@@ -233,13 +243,16 @@ void processMatInput() {
 
   //Iot lamp button
   if(lastCycleRawInput.iotLampButton == HIGH && currentRawInput.iotLampButton == LOW) {
-    processedInput.iotLampButtonPressed = true;
+    if(!iotLampButtonHoldLastCycle) {
+      processedInput.iotLampButtonPressed = true;
+    }
   } else if(lastCycleRawInput.iotLampButton == LOW && currentRawInput.iotLampButton == HIGH) {
     iotLampButtonStartHold = millis();
   } else if(lastCycleRawInput.iotLampButton == HIGH && currentRawInput.iotLampButton == HIGH &&
         millis() - iotLampButtonStartHold > 1000) {
     processedInput.iotLampButtonHold = true;
   }
+  iotLampButtonHoldLastCycle = processedInput.iotLampButtonHold;
 
 //nightLight
   if(lastCycleRawInput.nightLightButton == HIGH && currentRawInput.nightLightButton == LOW) {

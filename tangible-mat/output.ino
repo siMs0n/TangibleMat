@@ -70,7 +70,7 @@ void toggleCoffee() {
   String payload = http.getString();
   Serial.println("Response: " + payload);
   matState.coffeeState = newCoffeeState;
-  Serial.println("Toggled iot lamp state");
+  Serial.println("Toggled coffee state");
   http.end();
 }
 
@@ -96,6 +96,18 @@ void activateMat(){
 void turnOffAlarm(){
   matState.alarmState = 0;
   //Send to alarm to turn off
+  Serial.println("Turn off alarm");
+  HTTPClient http;
+  http.begin("http://" + laptopIp + ":3000/alarm");
+  http.addHeader("Content-Type", "application/json");
+  Serial.println("Alarm request:");
+  String request = "{\"state\": 0}";
+  Serial.println(request);
+  int httpCode = http.POST(request);
+  Serial.println("Toggle http code: " + String(httpCode));
+  String payload = http.getString();
+  Serial.println("Response: " + payload);
+  http.end();
 }
 
 void toggleIotLamp() {
@@ -124,7 +136,6 @@ void toggleIotLamp() {
   Serial.println("Toggled iot lamp state");
   http.end();
 
-  setledMeters(matState.iotLampState);
   /*StaticJsonBuffer<200> jsonBuffer;
   
   HTTPClient http;
@@ -177,6 +188,7 @@ void dimIotLamp() {
     http.end();
 
     matState.iotLampBrightness = processedInput.sliderValue;
+    setledMeters(matState.iotLampBrightness);
     //lastDebounceTimeSlider = millis();
    //}
 }

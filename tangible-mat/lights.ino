@@ -38,15 +38,20 @@ void initLedStrips() {
 
   FastLED.addLeds<NEOPIXEL, LED_STRIP_PIN>(leds, NUM_LEDS);
   FastLED.setBrightness(LED_BRIGHTNESS);
-  FastLED.clear(); //sanity check clear
-
+  ledClear(); //sanity check clear
 }
 
 //animates the led in a cool way, maybe for turning on or something
 void ledCoolAnimate() {
   // FastLED's built-in rainbow generator
   Serial.println("Animate leds");
-  fill_rainbow( leds, NUM_LEDS, LED_BASE_HUE, 7);
+  for(int i = 0; i<5; i++) {
+    fill_rainbow( leds, NUM_LEDS, LED_BASE_HUE, i+3);
+    FastLED.show();
+    delay(500);
+  }
+  Serial.println("Clear");
+  ledClear();
 }
 
 void ledSwitchButton(int index, bool turning_on) {
@@ -56,8 +61,8 @@ void ledSwitchButton(int index, bool turning_on) {
 }
 
 void setledMeters(int value) {
-  ledSetMeter(25, -12, value / 100);
-  ledSetMeter(2, 12, value / 100);
+  ledSetMeter(25, -12, value / 100.0f);
+  ledSetMeter(2, 12, value / 100.0f);
 }
 
 //set the meter turned on length as specified
@@ -65,12 +70,14 @@ void setledMeters(int value) {
 void ledSetMeter(int first_index, int meter_len, float value) {
   // do float arithmetics, but cast to int so it's floored
   // should be fine even for negative values right???
-  int max_index = first_index + (int)(value * (float) meter_len);
+  
+  int max_index;
 
   // set the leds
   if (meter_len < 0) { //negative length = backwards
-    for (int i = first_index; i < (first_index + meter_len); i--) {
-      if (i < max_index) {
+    int min_index = first_index + (int)(value * (float) meter_len);
+    for (int i = first_index; i > (first_index + meter_len); i--) {
+      if (i > min_index) {
         leds[i] = LED_BASE_HUE;
       }
       else { //turn off if oob
@@ -79,6 +86,7 @@ void ledSetMeter(int first_index, int meter_len, float value) {
     }
   }
   else { //normal forwards way
+    max_index = first_index + (int)(value * (float) meter_len);
     for (int i = first_index; i < (first_index + meter_len); i++) {
       if (i < max_index) {
         leds[i] = LED_BASE_HUE;
@@ -94,4 +102,5 @@ void ledSetMeter(int first_index, int meter_len, float value) {
 // wrapper for clearing all leds back to black
 void ledClear() {
   FastLED.clear();
+  FastLED.show();
 }
